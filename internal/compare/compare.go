@@ -22,9 +22,22 @@ type CompareResult struct {
 // FindNonFollowers compares following list against followers
 // Returns users who are in following but not in followers
 func FindNonFollowers(following []parser.FollowingUser, followers map[string]bool) *CompareResult {
-	// TODO: Iterate through following list
-	// TODO: Check each user against followers map
-	// TODO: Build results for users not found in followers
-	// TODO: Return CompareResult with all stats
-	return nil
+	var nonFollowers []Result
+
+	for _, user := range following {
+		if !followers[user.Username] {
+			nonFollowers = append(nonFollowers, Result{
+				Username:  user.Username,
+				URL:       user.URL,
+				Timestamp: user.Timestamp,
+			})
+		}
+	}
+
+	return &CompareResult{
+		NonFollowers:   nonFollowers,
+		Total:          len(nonFollowers),
+		FollowingCount: len(following),
+		FollowersCount: len(followers),
+	}
 }

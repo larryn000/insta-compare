@@ -33,26 +33,39 @@ func main() {
 }
 
 func run(followersPath, followingPath, outputPath, format string) error {
-	// TODO: Parse followers file
-	_, err := parser.ParseFollowers(followersPath)
+	// Parse followers file
+	followers, err := parser.ParseFollowers(followersPath)
 	if err != nil {
 		return fmt.Errorf("failed to parse followers: %w", err)
 	}
 
-	// TODO: Parse following file
-	_, err = parser.ParseFollowing(followingPath)
+	// Parse following file
+	following, err := parser.ParseFollowing(followingPath)
 	if err != nil {
 		return fmt.Errorf("failed to parse following: %w", err)
 	}
 
-	// TODO: Compare lists
-	_ = compare.FindNonFollowers(nil, nil)
+	// Compare lists
+	result := compare.FindNonFollowers(following, followers)
 
-	// TODO: Setup output writer
-	var writer *output.Writer
-	_ = writer
+	// Setup output writer
+	var out *os.File
+	if outputPath != "" {
+		out, err = os.Create(outputPath)
+		if err != nil {
+			return fmt.Errorf("failed to create output file: %w", err)
+		}
+		defer out.Close()
+	} else {
+		out = os.Stdout
+	}
 
-	// TODO: Write results
+	writer := output.NewWriter(out, output.Format(format))
+
+	// Write results
+	if err := writer.Write(result); err != nil {
+		return fmt.Errorf("failed to write output: %w", err)
+	}
 
 	return nil
 }

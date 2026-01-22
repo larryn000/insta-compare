@@ -2,6 +2,7 @@ package parser
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -26,16 +27,36 @@ type FollowingUser struct {
 // ParseFollowing reads and parses the following JSON file
 // Returns a slice of FollowingUser
 func ParseFollowing(filePath string) ([]FollowingUser, error) {
-	// TODO: Implement file reading
-	// TODO: Implement JSON parsing
-	// TODO: Extract username from title field
-	// TODO: Extract URL and timestamp from string_list_data
-	// TODO: Return slice of FollowingUser
-	return nil, nil
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("reading following file: %w", err)
+	}
+
+	file, err := parseFollowingData(data)
+	if err != nil {
+		return nil, fmt.Errorf("parsing following data: %w", err)
+	}
+
+	users := make([]FollowingUser, 0, len(file.RelationshipsFollowing))
+	for _, entry := range file.RelationshipsFollowing {
+		user := FollowingUser{
+			Username: entry.Title,
+		}
+		if len(entry.StringListData) > 0 {
+			user.URL = entry.StringListData[0].Href
+			user.Timestamp = entry.StringListData[0].Timestamp
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
 }
 
 // parseFollowingData parses the raw JSON data into FollowingFile
 func parseFollowingData(data []byte) (*FollowingFile, error) {
-	// TODO: Implement JSON unmarshaling
-	return nil, nil
+	var file FollowingFile
+	if err := json.Unmarshal(data, &file); err != nil {
+		return nil, fmt.Errorf("unmarshaling JSON: %w", err)
+	}
+	return &file, nil
 }

@@ -1,6 +1,8 @@
 package output
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 
 	"insta-compare/internal/compare"
@@ -30,23 +32,33 @@ func NewWriter(w io.Writer, format Format) *Writer {
 
 // Write outputs the comparison results in the configured format
 func (w *Writer) Write(result *compare.CompareResult) error {
-	// TODO: Check format type
-	// TODO: Call appropriate formatter (text or JSON)
-	// TODO: Write to output writer
-	return nil
+	switch w.format {
+	case FormatJSON:
+		return w.writeJSON(result)
+	default:
+		return w.writeText(result)
+	}
 }
 
 // writeText formats and writes results as human-readable text
 func (w *Writer) writeText(result *compare.CompareResult) error {
-	// TODO: Write header
-	// TODO: Write numbered list of non-followers
-	// TODO: Write total count
+	fmt.Fprintln(w.writer, "Users you follow who don't follow you back:")
+	fmt.Fprintln(w.writer, "-------------------------------------------")
+
+	for i, user := range result.NonFollowers {
+		fmt.Fprintf(w.writer, "%d. %s\n", i+1, user.Username)
+	}
+
+	fmt.Fprintln(w.writer)
+	fmt.Fprintf(w.writer, "Total: %d users\n", result.Total)
+	fmt.Fprintf(w.writer, "Following: %d | Followers: %d\n", result.FollowingCount, result.FollowersCount)
+
 	return nil
 }
 
 // writeJSON formats and writes results as JSON
 func (w *Writer) writeJSON(result *compare.CompareResult) error {
-	// TODO: Marshal result to JSON
-	// TODO: Write to output writer
-	return nil
+	encoder := json.NewEncoder(w.writer)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(result)
 }

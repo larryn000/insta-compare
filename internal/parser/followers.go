@@ -2,6 +2,7 @@ package parser
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 )
 
@@ -22,15 +23,31 @@ type StringListItem struct {
 // ParseFollowers reads and parses the followers JSON file
 // Returns a map of usernames for O(1) lookup
 func ParseFollowers(filePath string) (map[string]bool, error) {
-	// TODO: Implement file reading
-	// TODO: Implement JSON parsing
-	// TODO: Extract usernames from string_list_data[0].value
-	// TODO: Return map of usernames
-	return nil, nil
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("reading followers file: %w", err)
+	}
+
+	entries, err := parseFollowersData(data)
+	if err != nil {
+		return nil, fmt.Errorf("parsing followers data: %w", err)
+	}
+
+	followers := make(map[string]bool, len(entries))
+	for _, entry := range entries {
+		if len(entry.StringListData) > 0 && entry.StringListData[0].Value != "" {
+			followers[entry.StringListData[0].Value] = true
+		}
+	}
+
+	return followers, nil
 }
 
 // parseFollowersData parses the raw JSON data into FollowerEntry slice
 func parseFollowersData(data []byte) ([]FollowerEntry, error) {
-	// TODO: Implement JSON unmarshaling
-	return nil, nil
+	var entries []FollowerEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		return nil, fmt.Errorf("unmarshaling JSON: %w", err)
+	}
+	return entries, nil
 }
