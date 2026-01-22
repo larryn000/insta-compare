@@ -32,5 +32,6 @@ go.work.sum
 # .vscode/
 
 # Following data
+.following_data
 followers.json
 following.json
